@@ -4,7 +4,7 @@
 library (pacman)
 p_load (cmapR, dplyr, tidyr, gPCA, glue)
 
-source('c:/Users/karsten/Dropbox/Devel/R-code/my_plots.r')
+source('https://raw.githubusercontent.com/karstenkrug/R-code/main/my_plots.r')
 
 check.batch.effect <- function (f, ## path to GCT v1.3 file
                                 batch.var='Experiment', ## batch variable in cdesc object

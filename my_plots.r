@@ -1,20 +1,7 @@
 ## 20151013 collection of plotting functions
 library(pacman)
 
-
-
-
-OS <- Sys.info()['sysname']
-if(OS == 'Windows')
-  url.stem <- 'C:/Users/karsten/Dropbox/Devel/R-code/'
-  ##  url.stem <- '//flynn-cifs/prot_proteomics/'
-if(OS == 'Linux')
-  url.stem <- '~/karsten/'
-if(OS == 'Darwin')
-  url.stem <- '/Volumes/prot_proteomics/'
-  
-source(paste(url.stem, "misc.r", sep='/') )
-
+source('https://raw.githubusercontent.com/karstenkrug/R-code/main/misc.r')
 
 ## ###########################################################################
 ## ssGSEA volcano
