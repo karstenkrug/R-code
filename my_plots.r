@@ -637,7 +637,9 @@ scatterhist.ci <- function (x, y, id=NULL, xlab="", ylab="", title="",
 fancyPlot <- function(x, y, rug=F, grid=T, reg=c("none", "linear", "loess"), 
                       reg.col="darkred", reg.legend=T, cor=T, 
                       cor.method = c( "pearson", "spearman", "kendall"), pch=19, col="black", 
-                      alpha=60, boxplots=c("xy","x", "y", "n"), groups=1, cex.text=1, reset.par=F, cex.pch=1, ...)
+                      alpha=60, boxplots=c("xy","x", "y", "n"), groups=1, cex.text=1, reset.par=F, cex.pch=1, 
+                      symm_axes=F,
+                      xlim=NULL, ylim=NULL, ...)
 {
   p_load(car)
   
@@ -713,19 +715,22 @@ fancyPlot <- function(x, y, rug=F, grid=T, reg=c("none", "linear", "loess"),
   ###############################
   boxplots=match.arg(boxplots)
   
+  ################################
+  ## symmetrize axes?
+  if(symm_axes){
+    xlim <- ylim <- range(c(x, y))
+  }
   
-  palette.org <- palette()
+  #palette.org <- palette()
   ########################################
   #            plot
   #########################################
- # rver <- Rversion() 
-  #rver <-  paste(version$major, version$minor, sep='.') ## 20201203
   rver <- as.numeric(paste(version$major, sub('\\..*','', version$minor), sep='.')) 
-  #if(rver != "3.5.0")
-  if(rver < 3.5) ## 20201203
-    scatterplot(x,y, col=col, pch=pch, boxplots=boxplots, reg.line=F, smooth=F, sub=paste("N=", length(x),sep=""), groups=groups, reset.par=reset.par ,legend.plot=ifelse(length(groups) == 1, F, T), cex=cex.pch, ...)
-  else{
-    scatterplot(x,y, col=col, pch=pch, boxplots=boxplots, regLine=F, smooth=F, sub=paste("N=", length(x),sep=""), reset.par=reset.par , cex=cex.pch, ...)
+
+  if(rver < 3.5){
+    scatterplot(x,y, col=col, pch=pch, boxplots=boxplots, reg.line=F, smooth=F, sub=paste("N=", length(x),sep=""), groups=groups, reset.par=reset.par ,legend.plot=ifelse(length(groups) == 1, F, T), cex=cex.pch, xlim=xlim, ylim=ylim, ...)
+  } else {
+    scatterplot(x,y, col=col, pch=pch, boxplots=boxplots, regLine=F, smooth=F, sub=paste("N=", length(x),sep=""), reset.par=reset.par , cex=cex.pch, xlim=xlim, ylim=ylim, ...)
   }
   
   # grid
@@ -851,15 +856,20 @@ fancyBoxplot <- function(x,
                          grid.lwd=1,
                          grid.lty='dotted',
                          vio.wex=1.2, 
-                         show.numb=c('none', 'median', 'mean', 'median.top', 'median.bottom', 'numb.top', 'numb.bottom'), 
+                         show.numb=c('none', 'user.bottom', 'median', 'mean', 'median.top', 'median.bottom', 'mean.top', 'mean.bottom','numb.top', 'numb.bottom',
+                                     'sum.top', 'sum.bottom'),
+                         show.numb.user=NULL, 
                          numb.cex=.6, 
                          numb.col='black', 
-                         numb.pos=3, 
+                         numb.pos=3,
+                         numb.srt=0,
+                         show.mean=F,
                          ...){
   
   p_load(vioplot)
-  
+
   show.numb <- match.arg(show.numb)
+    
   
   ####################################
   ## names for x-axis
@@ -870,6 +880,15 @@ fancyBoxplot <- function(x,
   else
     names.x=names
   
+  ####################################
+  ## convert to list
+  x_mode <- mode(x)
+  if(!('list' %in% x_mode)) {
+    x_names <- colnames(x)
+    x <- lapply(x_names, function(col) x[, col])
+    names(x) <- x_names
+  }
+  
   
   ##################################
   # remove NAN/Inf
@@ -878,6 +897,12 @@ fancyBoxplot <- function(x,
   # ylim
   if(is.null(ylim))
     ylim=range(unlist(x))
+  
+  
+  if(show.numb == 'user.bottom') {
+    if(length(show.numb.user) != length(x))  show.numb <- 'none'
+  }
+  
   
   ##################################
   if(length(x) == 1){
@@ -936,19 +961,32 @@ fancyBoxplot <- function(x,
         boxplot( x[[i]], add=T, at=at[i], border=box.border[i], pch=box.pch, col=col[i], axes=F,...)
         
         if(show.numb=='median')
-          text(at[i], median(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col )
+          text(at[i], median(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
         if(show.numb=='mean')
-          text(at[i], mean(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col )
+          text(at[i], mean(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
         if(show.numb=='median.top')
-          text(at[i], ylim[2], round(median(x[[i]]),2), pos=1, cex=numb.cex, offset=0.1, col=numb.col )
+          text(at[i], ylim[2], round(median(x[[i]]),2), pos=1, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
         if(show.numb=='median.bottom')
-          text(at[i], ylim[1], round(median(x[[i]]),2), pos=3, cex=numb.cex, offset=0.1, col=numb.col )
-        if(show.numb=='numb.top')
-          text(at[i], ylim[2], length(x[[i]]), pos=1, cex=numb.cex, offset=0.1, col=numb.col )
-        if(show.numb=='numb.bottom')
-          text(at[i], ylim[1], length(x[[i]]), pos=3, cex=numb.cex, offset=0.1, col=numb.col )
+          text(at[i], ylim[1], round(median(x[[i]]),2), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
         
-        ##text(at[i], mean(x[[i]]), "*", adj=c(0,0) )
+        if(show.numb=='mean.top')
+          text(at[i], ylim[2], round(mean(x[[i]]),2), pos=1, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        if(show.numb=='mean.bottom')
+          text(at[i], ylim[1], round(mean(x[[i]]),2), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+   
+        if(show.numb=='sum.top')
+          text(at[i], ylim[2], round(sum(x[[i]]),2), pos=1, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        if(show.numb=='sum.bottom')
+          text(at[i], ylim[1], round(sum(x[[i]]),2), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        
+        if(show.numb=='numb.top')
+          text(at[i], ylim[2], length(x[[i]]), pos=1, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        if(show.numb=='numb.bottom')
+          text(at[i], ylim[1], length(x[[i]]), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        if(show.numb=='user.bottom')
+          text(at[i], ylim[1], show.numb.user[i], pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        
+        if(show.mean) text(at[i], mean(x[[i]]), "*", adj=c(0,0) )
       }
       
     }
@@ -963,7 +1001,9 @@ fancyBoxplot <- function(x,
 # 20140122 implementation
 # 20140214 added +/- sd in MA plot
 ###################################################################
-ba.plot <- function( x, y, type=c("BA", "MA"), ylim=NULL, xlim=NULL, main="", ... ){
+ba_plot <- function( x, y, type=c("BA", "MA"), 
+                     ylim=NULL, xlim=NULL, 
+                     main="", ... ){
   
   type=match.arg(type)
   
@@ -973,8 +1013,7 @@ ba.plot <- function( x, y, type=c("BA", "MA"), ylim=NULL, xlim=NULL, main="", ..
     Y <- x - y
     X <- (x+y)/2
     
-        #fancyPlot(X, Y, ...)
-        plot(X, Y, ylim=ylim, xlim=xlim,...)
+    plot(X, Y, ylim=ylim, xlim=xlim,...)
     }
 
     ######################
@@ -994,7 +1033,8 @@ ba.plot <- function( x, y, type=c("BA", "MA"), ylim=NULL, xlim=NULL, main="", ..
         }
 
         if(is.null(ylim))
-            ylim=c(-max(abs(M[!is.infinite(M)]), na.rm=T), max( abs(M[!is.infinite(M)]), na.rm=T))
+          ylim <- c(-max(abs(M)), max(abs(M)))  
+            #ylim=c(-max(abs(M[!is.infinite(M)]), na.rm=T), max( abs(M[!is.infinite(M)]), na.rm=T))
 
         fancyPlot(A, M, xlim=xlim, ylim=ylim, xlab=expression(A~~(~0.5~log[2](x~y))), ylab=expression(M~~(log[2](x/y))), cor=F, boxplots="y", main=paste("MA plot", main, sep="\n"), ...)
         abline( h=0, lwd=2, col="darkblue", lty="dashed")
@@ -1008,6 +1048,8 @@ ba.plot <- function( x, y, type=c("BA", "MA"), ylim=NULL, xlim=NULL, main="", ..
         abline(h=upper.sd, lwd=2, lty="dashed", col="darkred")
         abline(h=lower.sd, lwd=2, lty="dashed", col="darkred")
         legend("bottomleft", legend=c(paste("+/- 1.96 StdDev")), col="darkred", lty="dashed", lwd=2)
+        
+  
         
         out <- list()
         out[[1]] <- names(M)[which(M > upper.sd)]
