@@ -857,7 +857,7 @@ fancyBoxplot <- function(x,
                          grid.lty='dotted',
                          vio.wex=1.2, 
                          show.numb=c('none', 'user.bottom', 'median', 'mean', 'median.top', 'median.bottom', 'mean.top', 'mean.bottom','numb.top', 'numb.bottom',
-                                     'sum.top', 'sum.bottom'),
+                                     'sum.top', 'sum.bottom', 'median.plus.numb.bottom', 'median.plus.user.bottom'),
                          show.numb.user=NULL, 
                          numb.cex=.6, 
                          numb.col='black', 
@@ -985,6 +985,14 @@ fancyBoxplot <- function(x,
           text(at[i], ylim[1], length(x[[i]]), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
         if(show.numb=='user.bottom')
           text(at[i], ylim[1], show.numb.user[i], pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        if(show.numb=='median.plus.numb.bottom'){
+          text(at[i], median(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+          text(at[i], ylim[1], length(x[[i]]), pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        } 
+        if(show.numb=='median.plus.user.bottom'){
+          text(at[i], median(x[[i]]), round(median(x[[i]]),2), pos=numb.pos, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+          text(at[i], ylim[1], show.numb.user[i], pos=3, cex=numb.cex, offset=0.1, col=numb.col, srt=numb.srt )
+        }
         
         if(show.mean) text(at[i], mean(x[[i]]), "*", adj=c(0,0) )
       }
